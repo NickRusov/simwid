@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 import numpy as np
 from copy import copy
 from numpy.linalg import det 
@@ -24,27 +24,31 @@ def minor_mat(arr, i=0):
 #                np.array(range(j)+range(j+1, arr.shape[1]))]
 
 def exclude_row(arr, i=0):
-    # ith row, jth column removed
+    # ith row is removed
     return arr[np.array(chain(range(i),range(i+1, arr.shape[0])))[:, np.newaxis],
                np.array(range(arr.shape[1]))]
 
+def is_valid(A):
+	for i in xrange(A.shape[0]):
+	    if abs(det(minor_mat(A,i))) == 0.0:
+	    	return False
+	return True
 
 def get_det_of_minor(hermite):
     # return [abs(d) for d in hermite: ]
     for minor_counter in range(hermite.shape[1]):
         yield abs(det(minor_mat(hermite, i=0, j=minor_counter)))
         # prime = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+	
+
+def generate_b(dims):
+	"""finish it"""
+	b = np.zeros(shape=(dims,1))
+	return b
 
 
 if __name__ == '__main__':
-	h = get_hermit()
- 	print(h)
+	A = get_hermit()
+ 	print(A)
 	print('\n')
-	current_det = 0
-	# print(h[chain(range(1,2), range(3,5))])
-	# print(exclude_row(h, 0))
-
-	for i in range(h.shape[0]):
-	    current_det = det(minor_mat(h,i))
-	    if abs(current_det) > 0.0:
-		print('%i - %f' % (i,current_det))
+	print(is_valid(A))
