@@ -63,7 +63,7 @@ if __name__ == '__main__':
 	else:
 	    print 'f doesn`t belong to M={x: cx >= sigma}'
     
-	target_f = matrix(np.zeros((dimensions + 1,1),dtype=float), tc='d')
+	target_f = matrix(np.ones((dimensions + 1,1),dtype=float), tc='d')
 	target_f[0] = 1
 
 	# print target_f
@@ -92,5 +92,6 @@ if __name__ == '__main__':
 	print cone
 	b = np.append(f, sigma)
 	print 'dots\n'
+	
 	for i in xrange(cone.shape[0]):
 		print inv(minor(cone,i)).dot(b[range(i)+range(i+1, b.shape[0])])
