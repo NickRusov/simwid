@@ -5,10 +5,16 @@ from numpy.linalg import det, inv, matrix_rank
 from copy import copy
 from cvxopt.glpk import ilp
 from cvxopt import matrix
-from itertools import permutations, combinations
+from itertools import permutations, combinations, product
+from copy import copy
 
 dimensions = 4
-max_minor = 5
+max_minor = 3
+
+max_width = 0
+min_diff = 0
+max_width_simplex = None
+min_diff_simplex = None
 
 def minor(arr, i=0):  #  ith row removed
     return arr[np.array(range(i)+range(i+1, arr.shape[0]))[:, np.newaxis],
@@ -31,7 +37,12 @@ def is_valid_solution(solution):
 
 #         print restriction
 #         restriction = np.asarray(restriction)#np.ndarray(buffer=np.asarray(restriction)))#, shape=(1, dimensions)))
-def bruteforce(results, restriction):
+def bruteforce(restriction, a):
+    global max_width
+    global min_diff
+    global max_width_simplex
+    global min_diff_simplex
+
     print restriction
     restricted = np.append(hermit, np.matrix([np.asarray(restriction)]), 0) # np.ndarray(buffer=restriction, shape=(1, dimensions))
     minors = get_minors(restricted)
@@ -110,11 +121,19 @@ def bruteforce(results, restriction):
                 return
         else:
                 return
-    print 'The next result is going to be added: [0][0]'
-    result_ = ( min(width_list), dimensions, int(min_abs_minor), int(max_abs_minor), max_b ) 
-    print(result_)
-    with open( 'res_new.csv', 'a' ) as f:
-        f.write(';'.join([str(l) for l in result_]) + '\r\n')
+        cur_width = min(width_list)
+        if max_width < cur_width:
+            max_width = cur_width
+            max_width_simplex = copy(restricted)
+        cur_minor_width_diff = min_abs_minor - cur_width
+        if min_diff > cur_minor_width_diff:
+            min_diff = cur_minor_width_diff
+            min_diff_simplex = copy(restricted)
+#     print 'The next result is going to be added: [0][0]'
+#     result_ = ( min(width_list), dimensions, int(min_abs_minor), int(max_abs_minor), max_b ) 
+#     print(result_)
+#     with open( 'res_040617_4_3.csv', 'a' ) as f:
+#         f.write(';'.join([str(l) for l in result_]) + '\r\n')
 #     results.append(result_)
 #     results.append( ( min(width_list), dimensions, int(min_m), int(max_m), max_b ) )
     
@@ -125,23 +144,29 @@ hermit = np.diag(diag)
 
 
 from multiprocessing import Process, Value, Array, Manager
-
 manager = Manager()
-results = manager.list()
+# results = manager.list()
 
-for pre_last_row in permutations(xrange(dimensions), dimensions-1):
+
+for pre_last_row in list(product(xrange(dimensions), repeat=dimensions-1))[32:]:
     hermit[dimensions-1][:-1] = list(pre_last_row)
     
-    for restriction in permutations(xrange(-max_minor, max_minor + 1), dimensions):
-        p = Process(target=bruteforce, args=(results, restriction))
+    for restriction in product(xrange(-max_minor, max_minor + 1), repeat=dimensions):
+        p = Process(target=bruteforce, args=(restriction, 1))
         p.start()
-        p.join(600)
+        p.join(300)
         if p.is_alive():
             print "running... let's kill it..."
             # Terminate
             p.terminate()
             p.join()
         
-        
-with open( 'res_new.csv', 'a' ) as f:
-        f.write('This is the end... My dear friend' + '\r\n')
+	with open( '1_res_070617_4_3.csv', 'w' ) as f:
+		f.write('max_width: %s' % str(max_width))
+		f.write('\r\n')
+		f.write('min_diff: %s' % str(min_diff))
+		f.write('\r\n')
+
+
+	np.save('1_max_width_simplex_0706', max_width_simplex)
+	np.save('1_min_diff_simplex_0706', min_diff_simplex)
