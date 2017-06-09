@@ -11,8 +11,8 @@ from copy import copy
 dimensions = 4
 max_minor = 3
 
-max_width = 0
-min_diff = 0
+#max_width = 0
+#min_diff = 0
 max_width_simplex = None
 min_diff_simplex = None
 
